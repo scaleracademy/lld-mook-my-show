@@ -10,6 +10,7 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
+@MappedSuperclass
 public abstract class Auditable {
     @Id
     @GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
