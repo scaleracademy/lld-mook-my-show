@@ -2,49 +2,41 @@ package com.bookmyshow.core.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name="users")
-public class User extends Auditable {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class User extends Auditable {
+    @ManyToMany(fetch = FetchType.EAGER)
+    @Getter
+    @Setter
+    Set<Role> roles = new HashSet<>();
+    @Email
+    @NotBlank
     @Column(unique = true)
-    @Getter @Setter
+    @Getter
+    @Setter
     private String email;
+    @NotBlank
+    @Getter
     private String saltedHashedPassword;
 
-    @ManyToMany
-    private List<Role> roles = new ArrayList<>();
+    public User() {
+    }
 
-    @OneToOne
-    private Profile profile;
+    public User(User user) { // copy constructor
+        email = user.getEmail();
+        saltedHashedPassword = user.getSaltedHashedPassword();
+        roles = user.getRoles();
+    }
+
+    public void setSaltedHashedPassword(String value) {
+        this.saltedHashedPassword = new BCryptPasswordEncoder(5).encode(value);
+    }
 }
-
-// Store the password directly?
-// people reuse passwords
-// Sameer uses the password xyz on Scaler.com and has email id sameer@gmail.com
-// Richard => uses his girlfriends name as the password
-
-// Hash the password
-// Hash(something) => hashcode
-// one way function
-// MD5 is a big nono. 5 years back md5 was cracked.
-// SHA256/ SHA512
-// base64 x big nono because base64 is an encoding
-
-/*
-
-Username  hashedPassword
-ashish    ksjdhfisdf
-Ranjeet   pwojrpewior
-Vivek     ksjdhfisdf
-
-commonpasswords.txt => hash all of them => 80% user password
-
-// Salt => some random value based on username that is added to the password before hashing
-
-
- */
